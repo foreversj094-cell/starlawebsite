@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For STARLA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@300;400&family=Montserrat:wght@200;300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --gold-glow: rgba(201,168,76,0.4);
+    --deep: #020008;
+    --nebula1: #0a0020;
+    --nebula2: #100030;
+    --star-white: rgba(255,255,255,0.9);
+    --rose: #c45c8a;
+    --rose-glow: rgba(196,92,138,0.3);
+    --ice: #a8d4f5;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--deep);
+    font-family: 'Cormorant Garamond', serif;
+    color: white;
+    overflow: hidden;
+  }
+
+  /* ─── CANVAS (stars) ─── */
+  #starfield {
+    position: fixed; inset: 0; z-index: 0;
+  }
+
+  /* ─── PAGES ─── */
+  .page {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transition: opacity 1.2s ease;
+  }
+  .page.active { opacity: 1; pointer-events: all; }
+
+  /* ─── LOGIN PAGE ─── */
+  #login-page {
+    background: radial-gradient(ellipse at 50% 60%, #12003a 0%, #020008 70%);
+  }
+
+  .login-orb {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(100,30,180,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    animation: orb-pulse 6s ease-in-out infinite;
+  }
+  @keyframes orb-pulse {
+    0%,100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
+  .login-card {
+    position: relative; z-index: 2;
+    width: min(420px, 92vw);
+    padding: 60px 50px;
+    border: 1px solid rgba(201,168,76,0.25);
+    background: rgba(2,0,12,0.85);
+    backdrop-filter: blur(20px);
+    text-align: center;
+    animation: card-float 8s ease-in-out infinite;
+  }
+  .login-card::before {
+    content: '';
+    position: absolute; inset: -1px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.4), transparent 40%, rgba(196,92,138,0.3) 100%);
+    z-index: -1;
+    pointer-events: none;
+  }
+  @keyframes card-float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .login-title {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .login-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 2px;
+    margin-bottom: 50px;
+    font-style: italic;
+  }
+
+  .input-wrap {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .input-wrap input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: none;
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+    padding: 14px 16px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 200;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .input-wrap input:focus { border-bottom-color: var(--gold); }
+  .input-wrap input::placeholder { color: rgba(255,255,255,0.2); letter-spacing: 2px; }
+
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.5);
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+  .login-btn:hover::before { transform: translateX(100%); }
+  .login-btn:hover { border-color: var(--gold); color: white; background: rgba(201,168,76,0.08); }
+
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 28px 0;
+    color: rgba(255,255,255,0.15);
+    font-size: 11px; letter-spacing: 3px;
+  }
+  .divider::before,.divider::after {
+    content: '';flex:1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.2), transparent);
+  }
+
+  /* Voice button */
+  .voice-btn {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,92,138,0.5);
+    background: rgba(196,92,138,0.05);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .voice-btn svg { width: 28px; height: 28px; }
+  .voice-btn .ring {
+    position: absolute; inset: -4px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,92,138,0.2);
+    animation: ring-spin 4s linear infinite;
+  }
+  .voice-btn .ring2 {
+    position: absolute; inset: -10px;
+    border-radius: 50%;
+    border: 1px dashed rgba(196,92,138,0.1);
+    animation: ring-spin 8s linear infinite reverse;
+  }
+  @keyframes ring-spin {
+    to { transform: rotate(360deg); }
+  }
+  .voice-btn:hover { border-color: var(--rose); background: var(--rose-glow); }
+  .voice-btn.listening {
+    border-color: var(--rose);
+    background: var(--rose-glow);
+    animation: mic-pulse 1s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%,100% { box-shadow: 0 0 0 0 var(--rose-glow); }
+    50% { box-shadow: 0 0 0 20px transparent; }
+  }
+
+  .voice-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(196,92,138,0.6);
+    margin-top: 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 200;
+  }
+
+  .status-msg {
+    font-size: 12px;
+    color: rgba(201,168,76,0.7);
+    margin-top: 20px;
+    letter-spacing: 2px;
+    font-style: italic;
+    min-height: 20px;
+    transition: all 0.4s;
+  }
+  .status-msg.error { color: rgba(220,80,80,0.8); }
+  .status-msg.success { color: rgba(80,220,150,0.8); }
+
+  /* ─── WELCOME PAGE ─── */
+  #welcome-page {
+    background: radial-gradient(ellipse at 50% 40%, #1a0040 0%, #020008 65%);
+    text-align: center;
+    gap: 0;
+  }
+
+  .welcome-ring-outer {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.08);
+    animation: ring-spin 30s linear infinite;
+    pointer-events: none;
+  }
+  .welcome-ring-mid {
+    position: absolute;
+    width: 450px; height: 450px;
+    border-radius: 50%;
+    border: 1px dashed rgba(196,92,138,0.1);
+    animation: ring-spin 20s linear infinite reverse;
+    pointer-events: none;
+  }
+  .welcome-ring-inner {
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    border: 1px solid rgba(168,212,245,0.12);
+    animation: ring-spin 12s linear infinite;
+    pointer-events: none;
+  }
+
+  .welcome-content {
+    position: relative; z-index: 5;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+  }
+
+  .welcome-greeting {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 200;
+    font-size: 12px;
+    letter-spacing: 8px;
+    color: rgba(201,168,76,0.6);
+    text-transform: uppercase;
+    animation: fade-down 1.5s ease forwards;
+    opacity: 0;
+    animation-delay: 0.5s;
+  }
+
+  .welcome-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(52px, 8vw, 90px);
+    font-weight: 300;
+    letter-spacing: 16px;
+    color: transparent;
+    background: linear-gradient(135deg, #e8d5a3 0%, #c9a84c 30%, #f5e6c0 60%, #c45c8a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    line-height: 1;
+    text-transform: uppercase;
+    animation: name-reveal 2s cubic-bezier(0.16,1,0.3,1) forwards;
+    opacity: 0;
+    animation-delay: 1.2s;
+    position: relative;
+  }
+  .welcome-name::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: line-expand 1.5s ease forwards;
+    animation-delay: 2.5s;
+  }
+  @keyframes line-expand { to { width: 80%; } }
+
+  @keyframes name-reveal {
+    0% { opacity: 0; transform: scale(0.8) translateY(30px); letter-spacing: 40px; }
+    100% { opacity: 1; transform: scale(1) translateY(0); letter-spacing: 16px; }
+  }
+
+  @keyframes fade-down {
+    0% { opacity: 0; transform: translateY(-20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .welcome-tagline {
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 300;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 3px;
+    animation: fade-up 1.5s ease forwards;
+    opacity: 0;
+    animation-delay: 2.8s;
+    margin-top: 20px;
+  }
+  @keyframes fade-up {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .welcome-petals {
+    position: absolute;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .petal {
+    position: absolute;
+    width: 6px; height: 12px;
+    border-radius: 50% 50% 50% 0;
+    background: rgba(196,92,138,0.3);
+    animation: petal-fall linear infinite;
+    opacity: 0;
+  }
+  @keyframes petal-fall {
+    0% { opacity: 0; transform: translateY(-50px) rotate(0deg); }
+    10% { opacity: 1; }
+    90% { opacity: 0.5; }
+    100% { opacity: 0; transform: translateY(110vh) rotate(720deg) translateX(60px); }
+  }
+
+  .hearts-container {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .heart-float {
+    position: absolute;
+    bottom: -50px;
+    font-size: 16px;
+    opacity: 0;
+    animation: heart-rise linear infinite;
+  }
+  @keyframes heart-rise {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-100vh) scale(1.2) rotate(20deg); }
+  }
+
+  .voice-cue {
+    margin-top: 50px;
+    animation: fade-up 1s ease forwards;
+    opacity: 0;
+    animation-delay: 4s;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .voice-cue-text {
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.3);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 200;
+  }
+  .voice-cue-phrase {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: rgba(201,168,76,0.8);
+    letter-spacing: 2px;
+  }
+  .voice-cue-btn {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,92,138,0.4);
+    background: rgba(196,92,138,0.05);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .voice-cue-btn.listening {
+    border-color: var(--rose);
+    background: var(--rose-glow);
+    animation: mic-pulse 1s ease-in-out infinite;
+  }
+
+  /* Shooting stars */
+  .shooting-star {
+    position: fixed;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: shoot linear forwards;
+    opacity: 0;
+  }
+  @keyframes shoot {
+    0% { opacity: 1; transform: translate(0,0); }
+    100% { opacity: 0; transform: translate(300px, 300px); }
+  }
+
+  /* Floating particles */
+  .particle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particle-drift ease-in-out infinite;
+  }
+  @keyframes particle-drift {
+    0%,100% { transform: translateY(0) translateX(0); opacity: 0.4; }
+    33% { transform: translateY(-30px) translateX(20px); opacity: 0.8; }
+    66% { transform: translateY(-15px) translateX(-15px); opacity: 0.5; }
+  }
+</style>
+</head>
+<body>
+
+<!-- STAR CANVAS -->
+<canvas id="starfield"></canvas>
+
+<!-- ══════════ PAGE 1: LOGIN ══════════ -->
+<div class="page active" id="login-page">
+  <div class="login-orb"></div>
+
+  <div class="login-card" id="login-card">
+    <p class="login-title">A secret place</p>
+    <p class="login-subtitle">only for you</p>
+
+    <div class="input-wrap">
+      <input type="password" id="pass-input" placeholder="· · · · · · · ·" autocomplete="off"/>
+    </div>
+    <button class="login-btn" onclick="checkPassword()">ENTER ✦</button>
+
+    <div class="divider">or</div>
+
+    <div>
+      <div class="voice-btn" id="voice-login-btn" onclick="startVoiceLogin()">
+        <div class="ring"></div>
+        <div class="ring2"></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(196,92,138,0.8)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="9" y1="22" x2="15" y2="22"/>
+        </svg>
+      </div>
+      <p class="voice-label">speak to enter</p>
+    </div>
+
+    <p class="status-msg" id="status-msg"></p>
+  </div>
+</div>
+
+<!-- ══════════ PAGE 2: WELCOME ══════════ -->
+<div class="page" id="welcome-page">
+  <div class="welcome-petals" id="petals"></div>
+  <div class="hearts-container" id="hearts"></div>
+
+  <div class="welcome-ring-outer"></div>
+  <div class="welcome-ring-mid"></div>
+  <div class="welcome-ring-inner"></div>
+
+  <div class="welcome-content">
+    <p class="welcome-greeting">Welcome back, my universe</p>
+    <h1 class="welcome-name">STARLA</h1>
+    <p class="welcome-tagline">every star in the sky has your name</p>
+
+    <div class="voice-cue" id="voice-cue">
+      <p class="voice-cue-text">say the words to continue</p>
+      <p class="voice-cue-phrase">" Hai my dear Moon "</p>
+      <div class="voice-cue-btn" id="voice-welcome-btn" onclick="startWelcomeVoice()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(196,92,138,0.8)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="9" y1="22" x2="15" y2="22"/>
+        </svg>
+      </div>
+      <p class="status-msg" id="welcome-status"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const CORRECT_PASSWORD = "willbemineforever";
+
+// ── STARFIELD ──
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [], frameT = 0;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  stars = [];
+  for (let i = 0; i < 280; i++) stars.push({
+    x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+    r: Math.random()*1.6+0.2, alpha: Math.random()*0.8+0.2,
+    speed: Math.random()*0.02+0.005, offset: Math.random()*Math.PI*2,
+    color: Math.random()<0.15?'gold':Math.random()<0.1?'rose':'white'
+  });
+}
+function drawStars() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const bg=ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2,canvas.height/2,canvas.width*0.8);
+  bg.addColorStop(0,'#0a0020'); bg.addColorStop(1,'#020008');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,canvas.width,canvas.height);
+  [[0.3,0.4,'rgba(80,20,160,0.08)'],[0.7,0.6,'rgba(196,92,138,0.06)']].forEach(([rx,ry,col])=>{
+    const n=ctx.createRadialGradient(canvas.width*rx,canvas.height*ry,0,canvas.width*rx,canvas.height*ry,canvas.width*0.4);
+    n.addColorStop(0,col); n.addColorStop(1,'transparent');
+    ctx.fillStyle=n; ctx.fillRect(0,0,canvas.width,canvas.height);
+  });
+  frameT+=0.005;
+  stars.forEach(s=>{
+    const a=s.alpha*(0.5+0.5*Math.sin(frameT*(1/s.speed)+s.offset));
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle=s.color==='gold'?`rgba(201,168,76,${a})`:s.color==='rose'?`rgba(196,92,138,${a})`:`rgba(255,255,255,${a})`;
+    ctx.fill();
+    if(s.r>1.2){ctx.beginPath();ctx.arc(s.x,s.y,s.r*2.5,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${a*0.08})`;ctx.fill();}
+  });
+  requestAnimationFrame(drawStars);
+}
+setInterval(()=>{
+  const el=document.createElement('div'); el.className='shooting-star';
+  el.style.cssText=`left:${Math.random()*innerWidth}px;top:${Math.random()*innerHeight*0.5}px;width:${Math.random()*120+60}px;height:1px;border-radius:0;background:linear-gradient(90deg,white,transparent);transform:rotate(-${Math.random()*30+15}deg);animation-duration:${Math.random()*0.8+0.4}s;`;
+  document.body.appendChild(el); setTimeout(()=>el.remove(),1500);
+},3500);
+for(let i=0;i<20;i++){
+  const p=document.createElement('div'); p.className='particle';
+  const sz=Math.random()*3+1;
+  p.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:${Math.random()<0.5?'rgba(201,168,76,0.4)':'rgba(196,92,138,0.3)'};animation-duration:${Math.random()*6+4}s;animation-delay:${Math.random()*4}s;z-index:1;`;
+  document.body.appendChild(p);
+}
+function createPetals(){
+  for(let i=0;i<18;i++){
+    const p=document.createElement('div'); p.className='petal';
+    p.style.cssText=`left:${Math.random()*100}%;animation-duration:${Math.random()*8+6}s;animation-delay:${Math.random()*8}s;background:${Math.random()<0.5?'rgba(196,92,138,':'rgba(201,168,76,'}${Math.random()*0.3+0.1})`;
+    document.getElementById('petals').appendChild(p);
+  }
+}
+function createHearts(){
+  [10,20,35,50,65,78,90].forEach(x=>{
+    const h=document.createElement('div'); h.className='heart-float';
+    h.textContent='♡'; h.style.cssText=`left:${x}%;font-size:${Math.random()*14+10}px;color:rgba(196,92,138,0.4);animation-duration:${Math.random()*8+10}s;animation-delay:${Math.random()*6}s;`;
+    document.getElementById('hearts').appendChild(h);
+  });
+}
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── PASSWORD ──
+function checkPassword(){
+  const val=document.getElementById('pass-input').value;
+  const msg=document.getElementById('status-msg');
+  if(val===CORRECT_PASSWORD){
+    msg.className='status-msg success'; msg.textContent='✦ welcome, my star ✦';
+    setTimeout(goToWelcome,1200);
+  } else {
+    msg.className='status-msg error'; msg.textContent='the stars do not recognise this...';
+    const c=document.getElementById('login-card');
+    c.style.transform='translateX(-8px)'; setTimeout(()=>{c.style.transform='translateX(8px)';},80); setTimeout(()=>{c.style.transform='';},160);
+  }
+}
+document.getElementById('pass-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkPassword();});
+
+// ── PHRASE MATCHING — very loose ──
+function phraseMatch(text){
+  const t = text.toLowerCase();
+  const hasMoon = t.includes('moon')||t.includes('mun')||t.includes('mon');
+  const hasHai  = t.includes('hai')||t.includes('hi')||t.includes('hey')||t.includes('high');
+  const hasDear = t.includes('dear')||t.includes('deer')||t.includes('dir')||t.includes('dare');
+  const hasMy   = t.includes('my')||t.includes('mi')||t.includes('mai');
+  return hasMoon||(hasHai&&hasDear)||(hasHai&&hasMy)||(hasMy&&hasDear);
+}
+
+// ── DETECT ANDROID ──
+const isAndroid = /android/i.test(navigator.userAgent);
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isMobile = isAndroid || isIOS;
+
+// ── ANDROID VOICE: uses MediaRecorder + Web Speech ──
+// On Android Chrome, SpeechRecognition works but needs special handling
+function VoiceListener(statusId, btnId, onMatch){
+  let rec = null;
+  let matched = false;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function setS(text, cls){
+    const el=document.getElementById(statusId); if(!el) return;
+    el.className='status-msg'+(cls?' '+cls:''); el.textContent=text;
+  }
+  function setBtn(on){
+    const b=document.getElementById(btnId); if(!b) return;
+    b.classList.toggle('listening',on);
+  }
+
+  function start(){
+    if(matched) return;
+    if(!SR){ setS('Voice needs Chrome browser','error'); return; }
+
+    rec = new SR();
+    // Android Chrome works best with en-US, Desktop Indian English works better with en-IN
+    rec.lang = isAndroid ? 'en-US' : 'en-IN';
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 10;
+
+    rec.onstart = ()=>{ setBtn(true); setS('🎙 Mic ON — say "Hai my dear Moon"',''); };
+
+    rec.onresult = (e)=>{
+      if(matched) return;
+      let all='';
+      for(let i=0;i<e.results.length;i++)
+        for(let j=0;j<e.results[i].length;j++)
+          all+=' '+e.results[i][j].transcript;
+      const live=e.results[e.results.length-1][0].transcript;
+      setS('hearing: "'+live+'"','');
+      if(phraseMatch(all)){
+        matched=true;
+        try{rec.abort();}catch(x){}
+        setBtn(false);
+        setS('✦ recognised! ✦','success');
+        setTimeout(onMatch,900);
+        return;
+      }
+      if(e.results[e.results.length-1].isFinal && !phraseMatch(all)){
+        setS('heard: "'+live+'" — try again','error');
+      }
+    };
+
+    rec.onerror = (ev)=>{
+      setBtn(false);
+      if(ev.error==='not-allowed'){
+        setS('⚠ Mic blocked! Tap the 🔒 in browser address bar → allow mic','error');
+        return;
+      }
+      if(ev.error==='no-speech') setS('No speech — mic ready, speak now','');
+      else setS('retrying...','');
+      if(!matched) setTimeout(start, isAndroid?800:400);
+    };
+
+    rec.onend = ()=>{
+      setBtn(false);
+      if(!matched) setTimeout(start, isAndroid?700:400);
+    };
+
+    try{ rec.start(); }
+    catch(err){ setS('Mic error: '+err.message,'error'); if(!matched) setTimeout(start,1000); }
+  }
+
+  function stop(){ matched=true; try{if(rec)rec.abort();}catch(x){} setBtn(false); }
+  return {start,stop};
+}
+
+// ── LOGIN VOICE ──
+let loginVoice=null;
+function startVoiceLogin(){
+  if(loginVoice) return;
+  // On Android show a helpful tip first
+  if(isAndroid){
+    document.getElementById('status-msg').textContent='Starting mic... allow permission if asked';
+    document.getElementById('status-msg').className='status-msg';
+  }
+  loginVoice=VoiceListener('status-msg','voice-login-btn',()=>{ loginVoice=null; goToWelcome(); });
+  loginVoice.start();
+}
+
+// ── WELCOME VOICE ──
+let welcomeVoice=null;
+function startWelcomeVoice(){
+  if(welcomeVoice) return;
+  welcomeVoice=VoiceListener('welcome-status','voice-welcome-btn',()=>{
+    welcomeVoice=null;
+    document.getElementById('welcome-status').textContent='✦ your voice is heard, my love ✦';
+    setTimeout(goToGalaxyTransition,1200);
+  });
+  welcomeVoice.start();
+}
+
+function goToWelcome(){
+  if(loginVoice){loginVoice.stop();loginVoice=null;}
+  createPetals(); createHearts();
+  showPage('welcome-page');
+}
+function goToGalaxyTransition(){
+  if(welcomeVoice){welcomeVoice.stop();welcomeVoice=null;}
+  alert('✦ Phase 3 coming soon — the galaxy awaits ✦');
+}
+
+// ── MOBILE: show mic permission tip on load ──
+window.addEventListener('load',()=>{
+  if(isAndroid){
+    const msg=document.getElementById('status-msg');
+    msg.textContent='Tap the mic & allow microphone when asked';
+    msg.className='status-msg';
+  }
+});
+
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
+drawStars();
+</script>
+</body>
+</html>
